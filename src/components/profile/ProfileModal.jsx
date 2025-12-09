@@ -17,16 +17,6 @@ const ProfileModal = () => {
   useEffect(() => {
     if (user) {
       fetchUserProfile();
-      // Получаем или создаем дату регистрации из localStorage
-      const storedDate = localStorage.getItem(`user_registration_${user.id}`);
-      if (storedDate) {
-        setRegistrationDate(new Date(storedDate));
-      } else {
-        // Если даты нет в localStorage, создаем новую и сохраняем
-        const newRegistrationDate = new Date();
-        localStorage.setItem(`user_registration_${user.id}`, newRegistrationDate.toISOString());
-        setRegistrationDate(newRegistrationDate);
-      }
     }
   }, [user]);
 
@@ -45,50 +35,34 @@ const ProfileModal = () => {
           email: data.email || '',
           phone: data.phone || ''
         });
+        
+        // Получаем дату регистрации из данных сервера
+        if (data.registrationDate) {
+          // Парсим дату в формате "DD-MM-YYYY"
+          const [day, month, year] = data.registrationDate.split('-').map(Number);
+          const date = new Date(year, month - 1, day); // month - 1 потому что месяцы в JS с 0
+          setRegistrationDate(date);
+        } else {
+          // Если даты нет на сервере, используем текущую дату как fallback
+          setRegistrationDate(new Date());
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // В случае ошибки используем текущую дату
+      setRegistrationDate(new Date());
     }
   };
 
-  // Функция для расчета времени с момента регистрации
-  const calculateTimeSinceRegistration = () => {
-    if (!registrationDate) return 'Недавно';
+  // Функция для расчета количества дней с момента регистрации
+  const calculateDaysSinceRegistration = () => {
+    if (!registrationDate) return 0;
     
     const now = new Date();
     const diffMs = now - registrationDate;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
-    // Рассчитываем разницу в разных единицах времени
-    const diffSeconds = Math.floor(diffMs / 1000);
-    const diffMinutes = Math.floor(diffSeconds / 60);
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    const diffWeeks = Math.floor(diffDays / 7);
-    const diffMonths = Math.floor(diffDays / 30);
-    const diffYears = Math.floor(diffDays / 365);
-    
-    // Определяем наиболее подходящую единицу времени для отображения
-    if (diffYears > 0) {
-      return `${diffYears} год${getRussianPlural(diffYears, ['год', 'года', 'лет'])}`;
-    } else if (diffMonths > 0) {
-      return `${diffMonths} месяц${getRussianPlural(diffMonths, ['месяц', 'месяца', 'месяцев'])}`;
-    } else if (diffWeeks > 0) {
-      return `${diffWeeks} недел${getRussianPlural(diffWeeks, ['я', 'и', 'ь'])}`;
-    } else if (diffDays > 0) {
-      return `${diffDays} ден${getRussianPlural(diffDays, ['ь', 'я', 'ей'])}`;
-    } else if (diffHours > 0) {
-      return `${diffHours} час${getRussianPlural(diffHours, ['', 'а', 'ов'])}`;
-    } else if (diffMinutes > 0) {
-      return `${diffMinutes} минут${getRussianPlural(diffMinutes, ['а', 'ы', ''])}`;
-    } else {
-      return `${diffSeconds} секунд${getRussianPlural(diffSeconds, ['а', 'ы', ''])}`;
-    }
-  };
-
-  // Функция для получения правильного склонения русского слова
-  const getRussianPlural = (number, words) => {
-    const cases = [2, 0, 1, 1, 1, 2];
-    return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
+    return diffDays;
   };
 
   // Функция для форматирования даты регистрации
@@ -98,41 +72,15 @@ const ProfileModal = () => {
     return registrationDate.toLocaleDateString('ru-RU', {
       day: 'numeric',
       month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
   };
 
-  // Функция для расчета процента года
-  const calculateYearPercentage = () => {
-    if (!registrationDate) return 0;
-    
-    const now = new Date();
-    const diffMs = now - registrationDate;
-    const oneYearMs = 1000 * 60 * 60 * 24 * 365;
-    
-    // Ограничиваем максимальный процент 100%
-    return Math.min(100, Math.round((diffMs / oneYearMs) * 100));
-  };
-
-  // Функция для получения текста прогресса
-  const getProgressText = () => {
-    const percentage = calculateYearPercentage();
-    
-    if (percentage === 0) {
-      return 'Вы только что зарегистрировались';
-    } else if (percentage < 25) {
-      return 'Вы новичок на сайте';
-    } else if (percentage < 50) {
-      return 'Вы активный пользователь';
-    } else if (percentage < 75) {
-      return 'Вы опытный пользователь';
-    } else if (percentage < 100) {
-      return 'Вы почти с нами год!';
-    } else {
-      return 'Вы с нами уже больше года!';
-    }
+  // Функция для получения правильного склонения слова "день"
+  const getDaysText = (days) => {
+    if (days === 1) return 'день';
+    if (days >= 2 && days <= 4) return 'дня';
+    return 'дней';
   };
 
   const validateForm = () => {
@@ -228,17 +176,6 @@ const ProfileModal = () => {
     setUserData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Функция для сброса даты регистрации (для тестирования)
-  const resetRegistrationDate = () => {
-    if (user?.id) {
-      localStorage.removeItem(`user_registration_${user.id}`);
-      const newDate = new Date();
-      localStorage.setItem(`user_registration_${user.id}`, newDate.toISOString());
-      setRegistrationDate(newDate);
-      setMessage({ type: 'info', text: 'Дата регистрации сброшена!' });
-    }
-  };
-
   return (
     <div className="modal fade" id="profileModal" tabIndex="-1">
       <div className="modal-dialog modal-lg">
@@ -323,9 +260,8 @@ const ProfileModal = () => {
                         <strong>ID пользователя:</strong> {user.id || 'Не указан'}<br />
                         <strong>Статус:</strong> Активен<br />
                         <strong>Дата регистрации:</strong> {formatRegistrationDate()}<br />
-                        <strong>На сайте:</strong> {calculateTimeSinceRegistration()}
+                        <strong>На сайте:</strong> {calculateDaysSinceRegistration()} {getDaysText(calculateDaysSinceRegistration())}
                       </div>
-
                     </div>
                   </div>
                   
