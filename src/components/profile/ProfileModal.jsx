@@ -30,6 +30,8 @@ const ProfileModal = () => {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Получены данные пользователя:', data);
+        
         setUserData({
           name: data.name || '',
           email: data.email || '',
@@ -37,14 +39,49 @@ const ProfileModal = () => {
         });
         
         // Получаем дату регистрации из данных сервера
+        // Формат даты может быть разный, проверяем возможные варианты
+        let date = null;
+        
         if (data.registrationDate) {
-          // Парсим дату в формате "DD-MM-YYYY"
-          const [day, month, year] = data.registrationDate.split('-').map(Number);
-          const date = new Date(year, month - 1, day); // month - 1 потому что месяцы в JS с 0
-          setRegistrationDate(date);
+          // Пробуем разные форматы
+          const dateStr = data.registrationDate.trim();
+          
+          if (dateStr.includes('-')) {
+            // Формат ISO: "2025-12-09" или "2025-12-09T00:00:00.000Z"
+            date = new Date(dateStr);
+          } else if (dateStr.includes('.')) {
+            // Формат "DD.MM.YYYY"
+            const [day, month, year] = dateStr.split('.').map(Number);
+            date = new Date(year, month - 1, day);
+          } else if (dateStr.includes('/')) {
+            // Формат "MM/DD/YYYY" или "DD/MM/YYYY"
+            const parts = dateStr.split('/').map(Number);
+            if (parts[0] > 12) {
+              // Первая часть больше 12, значит это день (DD/MM/YYYY)
+              date = new Date(parts[2], parts[1] - 1, parts[0]);
+            } else {
+              // Первая часть <= 12, может быть американский формат (MM/DD/YYYY)
+              date = new Date(parts[2], parts[0] - 1, parts[1]);
+            }
+          }
+          
+          // Проверяем, что дата валидна
+          if (date && !isNaN(date.getTime())) {
+            setRegistrationDate(date);
+            console.log('Дата регистрации установлена:', date);
+          } else {
+            console.warn('Не удалось распарсить дату регистрации:', data.registrationDate);
+            setRegistrationDate(new Date()); // Fallback на текущую дату
+          }
         } else {
-          // Если даты нет на сервере, используем текущую дату как fallback
-          setRegistrationDate(new Date());
+          console.warn('Дата регистрации не найдена в ответе сервера');
+          // Если даты нет на сервере, используем дату из localStorage или текущую дату
+          const storedDate = localStorage.getItem(`user_registration_${user.id}`);
+          if (storedDate) {
+            setRegistrationDate(new Date(storedDate));
+          } else {
+            setRegistrationDate(new Date());
+          }
         }
       }
     } catch (error) {
@@ -62,7 +99,8 @@ const ProfileModal = () => {
     const diffMs = now - registrationDate;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
-    return diffDays;
+    // Если разница отрицательная (будущая дата), возвращаем 0
+    return Math.max(0, diffDays);
   };
 
   // Функция для форматирования даты регистрации
@@ -78,9 +116,33 @@ const ProfileModal = () => {
 
   // Функция для получения правильного склонения слова "день"
   const getDaysText = (days) => {
-    if (days === 1) return 'день';
-    if (days >= 2 && days <= 4) return 'дня';
+    const lastDigit = days % 10;
+    const lastTwoDigits = days % 100;
+    
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+      return 'дней';
+    }
+    
+    if (lastDigit === 1) return 'день';
+    if (lastDigit >= 2 && lastDigit <= 4) return 'дня';
     return 'дней';
+  };
+
+  // Функция для отладки - выводит информацию о дате
+  const debugDateInfo = () => {
+    if (!registrationDate) return null;
+    
+    return (
+      <div className="mt-2 p-2 border border-info rounded small">
+        <strong>Отладка даты:</strong><br />
+        Исходная строка с сервера: {user?.registrationDate || 'не указана'}<br />
+        Распарсено как: {registrationDate.toString()}<br />
+        ISO формат: {registrationDate.toISOString()}<br />
+        Локальный формат: {registrationDate.toLocaleDateString()}<br />
+        Timestamp: {registrationDate.getTime()}<br />
+        Разница с сегодня: {calculateDaysSinceRegistration()} {getDaysText(calculateDaysSinceRegistration())}
+      </div>
+    );
   };
 
   const validateForm = () => {
@@ -262,6 +324,9 @@ const ProfileModal = () => {
                         <strong>Дата регистрации:</strong> {formatRegistrationDate()}<br />
                         <strong>На сайте:</strong> {calculateDaysSinceRegistration()} {getDaysText(calculateDaysSinceRegistration())}
                       </div>
+                      
+                      {/* Раскомментируйте для отладки */}
+                      {/* {debugDateInfo()} */}
                     </div>
                   </div>
                   
