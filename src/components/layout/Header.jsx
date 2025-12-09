@@ -96,7 +96,8 @@ const Header = ({ onAnimalClick }) => {
       return;
     }
 
-    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    // Перенаправляем на страницу /find-animals с поисковым запросом
+    navigate(`/find-animals?search=${encodeURIComponent(searchQuery)}`);
     setShowSuggestions(false);
     setSearchQuery("");
   };

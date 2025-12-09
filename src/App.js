@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './components/pages/HomePage';
 import FindAnimalsPage from './components/pages/FindAnimalsPage';
-import SearchPage from './components/pages/SearchPage';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import { AuthProvider } from './components/auth/AuthContext';
@@ -52,7 +51,6 @@ function AppContent() {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<HomePage key="home" />} />
           <Route path="/find-animals" element={<FindAnimalsPage key="find-animals" />} />
-          <Route path="/search" element={<SearchPage key="search" />} />
         </Routes>
       </main>
       <Footer />

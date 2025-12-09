@@ -1,23 +1,20 @@
 import React from 'react';
 import Slider from '../layout/Slider';
-import AnimalList from '../animals/AnimalList';
 import NewsletterForm from '../forms/NewsletterForm';
 
 const HomePage = () => {
   return (
     <>
-      <Slider />
+      {/* Полноразмерный слайдер */}
+      <div className="slider-fullscreen">
+        <Slider />
+      </div>
       
       <div className="container mt-5">
         <div className="text-center mb-5">
           <h1>Найди своего питомца</h1>
-          <p className="lead text-muted">
-            Помогите животным найти новый дом или найдите друга для себя
-          </p>
+          
         </div>
-        
-        <h2 className="mb-4">Последние найденные животные</h2>
-        <AnimalList limit={3} />
         
         <div className="row mt-5 mb-5">
           <div className="col-12">

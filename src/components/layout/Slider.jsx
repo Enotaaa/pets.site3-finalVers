@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
+
 const Slider = () => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,7 @@ const Slider = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-5">
+      <div className="slider-loading text-center py-5">
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Загрузка...</span>
         </div>
@@ -45,7 +46,7 @@ const Slider = () => {
   }
 
   return (
-    <div className="slider-container mb-5">
+    <div className="fullscreen-slider-container">
       <div id="animalCarousel" className="carousel slide" data-bs-ride="carousel">
         <div className="carousel-indicators">
           {pets.map((_, index) => (
@@ -68,13 +69,9 @@ const Slider = () => {
                     src={`https://pets.xn--80ahdri7a.site${pet.image}`}
                     className="d-block w-100"
                     alt={pet.kind}
-                    style={{ height: '500px', objectFit: 'cover' }}
                   />
                 ) : (
-                  <div 
-                    className="d-block w-100 bg-secondary"
-                    style={{ height: '500px' }}
-                  >
+                  <div className="d-block w-100 bg-secondary no-image-placeholder">
                     <div className="h-100 d-flex align-items-center justify-content-center text-white">
                       <div>
                         <i className="bi bi-image fs-1 d-block"></i>
