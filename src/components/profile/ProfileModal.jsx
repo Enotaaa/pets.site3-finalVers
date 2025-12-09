@@ -9,6 +9,7 @@ const ProfileModal = () => {
     email: '',
     phone: ''
   });
+  const [registrationDate, setRegistrationDate] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -16,6 +17,16 @@ const ProfileModal = () => {
   useEffect(() => {
     if (user) {
       fetchUserProfile();
+      // Получаем или создаем дату регистрации из localStorage
+      const storedDate = localStorage.getItem(`user_registration_${user.id}`);
+      if (storedDate) {
+        setRegistrationDate(new Date(storedDate));
+      } else {
+        // Если даты нет в localStorage, создаем новую и сохраняем
+        const newRegistrationDate = new Date();
+        localStorage.setItem(`user_registration_${user.id}`, newRegistrationDate.toISOString());
+        setRegistrationDate(newRegistrationDate);
+      }
     }
   }, [user]);
 
@@ -37,6 +48,90 @@ const ProfileModal = () => {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  // Функция для расчета времени с момента регистрации
+  const calculateTimeSinceRegistration = () => {
+    if (!registrationDate) return 'Недавно';
+    
+    const now = new Date();
+    const diffMs = now - registrationDate;
+    
+    // Рассчитываем разницу в разных единицах времени
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffDays / 365);
+    
+    // Определяем наиболее подходящую единицу времени для отображения
+    if (diffYears > 0) {
+      return `${diffYears} год${getRussianPlural(diffYears, ['год', 'года', 'лет'])}`;
+    } else if (diffMonths > 0) {
+      return `${diffMonths} месяц${getRussianPlural(diffMonths, ['месяц', 'месяца', 'месяцев'])}`;
+    } else if (diffWeeks > 0) {
+      return `${diffWeeks} недел${getRussianPlural(diffWeeks, ['я', 'и', 'ь'])}`;
+    } else if (diffDays > 0) {
+      return `${diffDays} ден${getRussianPlural(diffDays, ['ь', 'я', 'ей'])}`;
+    } else if (diffHours > 0) {
+      return `${diffHours} час${getRussianPlural(diffHours, ['', 'а', 'ов'])}`;
+    } else if (diffMinutes > 0) {
+      return `${diffMinutes} минут${getRussianPlural(diffMinutes, ['а', 'ы', ''])}`;
+    } else {
+      return `${diffSeconds} секунд${getRussianPlural(diffSeconds, ['а', 'ы', ''])}`;
+    }
+  };
+
+  // Функция для получения правильного склонения русского слова
+  const getRussianPlural = (number, words) => {
+    const cases = [2, 0, 1, 1, 1, 2];
+    return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
+  };
+
+  // Функция для форматирования даты регистрации
+  const formatRegistrationDate = () => {
+    if (!registrationDate) return 'Недавно';
+    
+    return registrationDate.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Функция для расчета процента года
+  const calculateYearPercentage = () => {
+    if (!registrationDate) return 0;
+    
+    const now = new Date();
+    const diffMs = now - registrationDate;
+    const oneYearMs = 1000 * 60 * 60 * 24 * 365;
+    
+    // Ограничиваем максимальный процент 100%
+    return Math.min(100, Math.round((diffMs / oneYearMs) * 100));
+  };
+
+  // Функция для получения текста прогресса
+  const getProgressText = () => {
+    const percentage = calculateYearPercentage();
+    
+    if (percentage === 0) {
+      return 'Вы только что зарегистрировались';
+    } else if (percentage < 25) {
+      return 'Вы новичок на сайте';
+    } else if (percentage < 50) {
+      return 'Вы активный пользователь';
+    } else if (percentage < 75) {
+      return 'Вы опытный пользователь';
+    } else if (percentage < 100) {
+      return 'Вы почти с нами год!';
+    } else {
+      return 'Вы с нами уже больше года!';
     }
   };
 
@@ -133,6 +228,17 @@ const ProfileModal = () => {
     setUserData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Функция для сброса даты регистрации (для тестирования)
+  const resetRegistrationDate = () => {
+    if (user?.id) {
+      localStorage.removeItem(`user_registration_${user.id}`);
+      const newDate = new Date();
+      localStorage.setItem(`user_registration_${user.id}`, newDate.toISOString());
+      setRegistrationDate(newDate);
+      setMessage({ type: 'info', text: 'Дата регистрации сброшена!' });
+    }
+  };
+
   return (
     <div className="modal fade" id="profileModal" tabIndex="-1">
       <div className="modal-dialog modal-lg">
@@ -211,11 +317,15 @@ const ProfileModal = () => {
                       )}
                     </div>
                     
-                    <div className="mt-3">
-                      <p className="text-muted small">
+                    <div className="mt-4 p-3 border rounded bg-light">
+                      <h6>Статистика аккаунта</h6>
+                      <div className="mt-2">
                         <strong>ID пользователя:</strong> {user.id || 'Не указан'}<br />
-                        <strong>Статус:</strong> Активен
-                      </p>
+                        <strong>Статус:</strong> Активен<br />
+                        <strong>Дата регистрации:</strong> {formatRegistrationDate()}<br />
+                        <strong>На сайте:</strong> {calculateTimeSinceRegistration()}
+                      </div>
+
                     </div>
                   </div>
                   

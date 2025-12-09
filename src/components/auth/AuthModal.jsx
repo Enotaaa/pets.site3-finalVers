@@ -128,27 +128,27 @@ const AuthModal = () => {
                 <div className="form-text mb-3">
                   Тестовый аккаунт: user@user.rl / paSSword1
                 </div>
+                
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    data-bs-dismiss="modal"
+                  >
+                    Закрыть
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-dark"
+                  >
+                    Войти
+                  </button>
+                </div>
               </form>
             ) : (
+              // Для режима регистрации - только форма без дополнительных кнопок
               <RegistrationForm />
             )}
-          </div>
-          
-          <div className="modal-footer">
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              data-bs-dismiss="modal"
-            >
-              Закрыть
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-dark"
-              onClick={isLoginMode ? handleLogin : undefined}
-            >
-              {isLoginMode ? 'Войти' : 'Зарегистрироваться'}
-            </button>
           </div>
         </div>
       </div>
