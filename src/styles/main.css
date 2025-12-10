@@ -1,3 +1,4 @@
+
 /* Основные стили */
 .app-container {
   min-height: 100vh;
@@ -95,31 +96,72 @@
   width: 100%;
 }
 
-/* ЧЕРНЫЕ ЭЛЕМЕНТЫ УПРАВЛЕНИЯ СЛАЙДЕРОМ */
+/* Овальные индикаторы слайдера сверху */
+.carousel-indicators {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
 .carousel-indicators [data-bs-target] {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 30px;
+  height: 8px;
+  border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.5);
-  border: 2px solid #fff;
-  margin: 0 5px;
+  border: none;
   opacity: 0.7;
   transition: all 0.3s ease;
+  cursor: pointer;
+  margin: 0;
+  text-indent: 0;
 }
 
 .carousel-indicators .active {
   background-color: #000 !important;
   opacity: 1;
-  transform: scale(1.2);
+  transform: scale(1.1);
+}
+
+/* ИСПРАВЛЕННЫЕ СТРЕЛОЧКИ СЛАЙДЕРА */
+.carousel-control-prev,
+.carousel-control-next {
+  z-index: 20;
+  width: 60px;
+  height: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.carousel-control-prev {
+  left: 20px;
+}
+
+.carousel-control-next {
+  right: 20px;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+  opacity: 1;
 }
 
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
+  width: 60px;
+  height: 60px;
+  background-size: 50% 50%;
   background-color: rgba(0, 0, 0, 0.7);
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  background-size: 60% 60%;
   border: 2px solid #fff;
   transition: all 0.3s ease;
 }
@@ -127,7 +169,7 @@
 .carousel-control-prev:hover .carousel-control-prev-icon,
 .carousel-control-next:hover .carousel-control-next-icon {
   background-color: rgba(0, 0, 0, 0.9);
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .carousel-control-prev-icon {
@@ -172,10 +214,33 @@
   background: white;
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-  max-width: 900px;
-  width: 100%;
-  max-height: 90vh;
+  width: 750px;
+  max-width: 90vw;
+  height: 80vh;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pet-modal .modal-header {
+  flex-shrink: 0;
+  padding: 1.25rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.pet-modal .modal-body {
+  flex: 1;
   overflow-y: auto;
+  padding: 1.25rem;
+}
+
+.pet-modal .modal-footer {
+  flex-shrink: 0;
+  padding: 1.25rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Адаптивные стили */
@@ -189,10 +254,30 @@
     height: 60vh;
   }
   
+  .carousel-control-prev,
+  .carousel-control-next {
+    width: 50px;
+    height: 50px;
+  }
+  
   .carousel-control-prev-icon,
   .carousel-control-next-icon {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .carousel-control-prev {
+    left: 15px;
+  }
+  
+  .carousel-control-next {
+    right: 15px;
+  }
+  
+  .pet-modal {
+    width: 90vw;
+    height: 85vh;
+    max-height: 85vh;
   }
 }
 
@@ -208,15 +293,33 @@
     min-height: 400px;
   }
   
+  .carousel-control-prev,
+  .carousel-control-next {
+    width: 45px;
+    height: 45px;
+  }
+  
   .carousel-control-prev-icon,
   .carousel-control-next-icon {
-    width: 35px;
-    height: 35px;
+    width: 45px;
+    height: 45px;
+  }
+  
+  .carousel-control-prev {
+    left: 10px;
+  }
+  
+  .carousel-control-next {
+    right: 10px;
+  }
+  
+  .carousel-indicators {
+    top: 15px;
   }
   
   .carousel-indicators [data-bs-target] {
-    width: 10px;
-    height: 10px;
+    width: 25px;
+    height: 6px;
   }
   
   .slider-fullscreen .carousel-caption .bg-dark {
@@ -224,7 +327,13 @@
   }
   
   .pet-modal {
-    max-height: 95vh;
+    width: 95vw;
+    height: 90vh;
+    max-height: 90vh;
+  }
+  
+  .pet-modal-backdrop {
+    padding: 15px;
   }
 }
 
@@ -240,10 +349,33 @@
     min-height: 300px;
   }
   
+  .carousel-control-prev,
+  .carousel-control-next {
+    width: 40px;
+    height: 40px;
+  }
+  
   .carousel-control-prev-icon,
   .carousel-control-next-icon {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .carousel-control-prev {
+    left: 8px;
+  }
+  
+  .carousel-control-next {
+    right: 8px;
+  }
+  
+  .carousel-indicators {
+    top: 10px;
+  }
+  
+  .carousel-indicators [data-bs-target] {
+    width: 20px;
+    height: 5px;
   }
   
   .slider-fullscreen .carousel-caption .bg-dark {
@@ -258,6 +390,24 @@
   .slider-fullscreen .carousel-caption p {
     font-size: 0.875rem;
     margin-bottom: 0;
+  }
+  
+  .pet-modal {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    max-width: 100vw;
+    border-radius: 0;
+  }
+  
+  .pet-modal-backdrop {
+    padding: 0;
+  }
+  
+  .pet-modal .modal-header,
+  .pet-modal .modal-body,
+  .pet-modal .modal-footer {
+    padding: 1rem;
   }
 }
 

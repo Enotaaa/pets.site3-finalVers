@@ -19,12 +19,14 @@ const FoundAnimalForm = () => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  
+  // Для неавторизованных пользователей
+  const [wantsToRegister, setWantsToRegister] = useState(false);
   const [passwordData, setPasswordData] = useState({
     password: '',
     password_confirmation: ''
   });
-
+  
   const districts = [
     'Адмиралтейский район',
     'Василеостровский район',
@@ -77,6 +79,28 @@ const FoundAnimalForm = () => {
       newErrors.email = 'Введите email';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Введите корректный email';
+    }
+    
+    // Валидация пароля для авторизованных пользователей
+    if (user) {
+      if (!passwordData.password.trim()) {
+        newErrors.password = 'Введите ваш пароль для подтверждения';
+      }
+    }
+    
+    // Валидация пароля для неавторизованных пользователей, если хотят зарегистрироваться
+    if (!user && wantsToRegister) {
+      if (!passwordData.password.trim()) {
+        newErrors.password = 'Введите пароль';
+      } else if (passwordData.password.length < 6) {
+        newErrors.password = 'Пароль должен содержать минимум 6 символов';
+      }
+      
+      if (!passwordData.password_confirmation.trim()) {
+        newErrors.password_confirmation = 'Подтвердите пароль';
+      } else if (passwordData.password !== passwordData.password_confirmation) {
+        newErrors.password_confirmation = 'Пароли не совпадают';
+      }
     }
     
     if (!formData.confirm) {
@@ -132,6 +156,26 @@ const FoundAnimalForm = () => {
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleRegisterCheckboxChange = (e) => {
+    const { checked } = e.target;
+    setWantsToRegister(checked);
+    
+    // Очищаем поля пароля при отмене регистрации
+    if (!checked) {
+      setPasswordData({ password: '', password_confirmation: '' });
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
+        delete newErrors.password_confirmation;
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -139,28 +183,17 @@ const FoundAnimalForm = () => {
     setErrors({});
     setMessage({ type: '', text: '' });
     
-    // Первый шаг: проверка основной формы
-    if (!showPasswordFields) {
-      const validationErrors = validateForm();
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        return;
-      }
-      setShowPasswordFields(true);
+    // Проверка всей формы
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
     
-    // Второй шаг: проверка пароля
-    if (!passwordData.password) {
-      setErrors(prev => ({ ...prev, password: 'Введите пароль' }));
-      return;
-    }
-    
-    if (!user && passwordData.password !== passwordData.password_confirmation) {
-      setErrors(prev => ({ ...prev, password_confirmation: 'Пароли не совпадают' }));
-      return;
-    }
-    
+    await submitForm();
+  };
+
+  const submitForm = async () => {
     setIsSubmitting(true);
     
     try {
@@ -183,9 +216,11 @@ const FoundAnimalForm = () => {
       });
       
       // Добавляем пароль
-      apiFormData.append('password', passwordData.password);
-      if (!user) {
-        apiFormData.append('password_confirmation', passwordData.password_confirmation);
+      if (user || (!user && wantsToRegister)) {
+        apiFormData.append('password', passwordData.password);
+        if (!user) {
+          apiFormData.append('password_confirmation', passwordData.password_confirmation);
+        }
       }
       
       // Настраиваем заголовки
@@ -220,7 +255,7 @@ const FoundAnimalForm = () => {
           setImages([null, null, null]);
           setImagePreviews([]);
           setPasswordData({ password: '', password_confirmation: '' });
-          setShowPasswordFields(false);
+          setWantsToRegister(false);
           
           // Закрываем модальное окно
           const closeBtn = document.querySelector('[data-bs-dismiss="modal"]');
@@ -239,7 +274,8 @@ const FoundAnimalForm = () => {
   const handleCancel = () => {
     setErrors({});
     setMessage({ type: '', text: '' });
-    setShowPasswordFields(false);
+    setPasswordData({ password: '', password_confirmation: '' });
+    setWantsToRegister(false);
   };
 
   return (
@@ -266,7 +302,7 @@ const FoundAnimalForm = () => {
             {user && (
               <div className="alert alert-info">
                 <i className="bi bi-info-circle me-2"></i>
-                Вы авторизованы как <strong>{user.name}</strong>
+                Вы авторизованы как <strong>{user.name}</strong>. Для подтверждения введите ваш пароль ниже.
               </div>
             )}
             
@@ -440,7 +476,7 @@ const FoundAnimalForm = () => {
                                   onClick={() => removeImage(index)}
                                   disabled={isSubmitting}
                                 >
-                                  ×
+                                  <i className="bi bi-x"></i>
                                 </button>
                               </div>
                             </div>
@@ -468,33 +504,81 @@ const FoundAnimalForm = () => {
                 )}
               </div>
               
-              {/* Поля пароля */}
-              {showPasswordFields && (
-                <div className="border-top pt-3 mt-3">
-                  <h6>Подтверждение пароля</h6>
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Пароль *</label>
-                        <input
-                          type="password"
-                          className={`form-control ${errors.password ? 'is-invalid' : ''}`}
-                          name="password"
-                          value={passwordData.password}
-                          onChange={handlePasswordChange}
-                          placeholder="Введите пароль"
-                          disabled={isSubmitting}
-                        />
-                        {errors.password && (
-                          <div className="invalid-feedback">{errors.password}</div>
-                        )}
-                        <small className="text-muted">
-                          {user ? 'Введите пароль для подтверждения' : 'Минимум 6 символов'}
-                        </small>
+              {/* Чекбокс для регистрации (только для неавторизованных) */}
+              {!user && (
+                <div className="mb-3 form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="registerCheckbox"
+                    checked={wantsToRegister}
+                    onChange={handleRegisterCheckboxChange}
+                    disabled={isSubmitting}
+                  />
+                  <label className="form-check-label" htmlFor="registerCheckbox">
+                    Зарегистрироваться на сайте
+                  </label>
+                  <small className="text-muted d-block">
+                    Создаст аккаунт для управления вашими объявлениями
+                  </small>
+                </div>
+              )}
+              
+              {/* Поля для пароля - ПОКАЗЫВАЮТСЯ ВСЕГДА в конце формы */}
+              <div className="border-top pt-3 mt-3">
+                {/* Для авторизованных пользователей */}
+                {user && (
+                  <>
+                    <h6>Подтверждение пароля</h6>
+                    <div className="alert alert-warning">
+                      <i className="bi bi-shield-lock me-2"></i>
+                      Введите ваш пароль для подтверждения создания объявления
+                    </div>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Пароль *</label>
+                          <input
+                            type="password"
+                            className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                            name="password"
+                            value={passwordData.password}
+                            onChange={handlePasswordChange}
+                            placeholder="Введите ваш пароль"
+                            disabled={isSubmitting}
+                          />
+                          {errors.password && (
+                            <div className="invalid-feedback">{errors.password}</div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    
-                    {!user && (
+                  </>
+                )}
+                
+                {/* Для неавторизованных пользователей, если хотят зарегистрироваться */}
+                {!user && wantsToRegister && (
+                  <>
+                    <h6>Регистрация</h6>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Пароль *</label>
+                          <input
+                            type="password"
+                            className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                            name="password"
+                            value={passwordData.password}
+                            onChange={handlePasswordChange}
+                            placeholder="Введите пароль (мин. 6 символов)"
+                            disabled={isSubmitting}
+                          />
+                          {errors.password && (
+                            <div className="invalid-feedback">{errors.password}</div>
+                          )}
+                        </div>
+                      </div>
+                      
                       <div className="col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Подтверждение пароля *</label>
@@ -512,10 +596,10 @@ const FoundAnimalForm = () => {
                           )}
                         </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                    </div>
+                  </>
+                )}
+              </div>
               
               <div className="mb-3 form-check">
                 <input
@@ -554,7 +638,7 @@ const FoundAnimalForm = () => {
                       <span className="spinner-border spinner-border-sm me-2"></span>
                       Отправка...
                     </>
-                  ) : showPasswordFields ? 'Создать объявление' : 'Далее → Ввести пароль'}
+                  ) : 'Создать объявление'}
                 </button>
               </div>
             </form>

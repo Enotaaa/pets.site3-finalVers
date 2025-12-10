@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 const AnimalModal = ({ animalId, onClose }) => {
@@ -148,7 +149,7 @@ const AnimalModal = ({ animalId, onClose }) => {
                         src={getImageUrl(animalInfo.photos[0])}
                         className="img-fluid rounded mb-3"
                         alt={animalInfo.kind}
-                        style={{ maxHeight: '300px', objectFit: 'cover', width: '100%' }}
+                        style={{ maxHeight: '220px', objectFit: 'cover', width: '100%' }}
                         onError={(e) => {
                           e.target.onerror = null;
                           e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f8f9fa'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='%236c757d' text-anchor='middle' dy='.3em'%3EНет фото%3C/text%3E%3C/svg%3E";
@@ -163,7 +164,7 @@ const AnimalModal = ({ animalId, onClose }) => {
                                 src={getImageUrl(photo)}
                                 className="img-thumbnail"
                                 alt={`${animalInfo.kind} фото ${index + 1}`}
-                                style={{ width: '80px', height: '80px', objectFit: 'cover', cursor: 'pointer' }}
+                                style={{ width: '60px', height: '60px', objectFit: 'cover', cursor: 'pointer' }}
                                 onClick={() => {
                                   const mainImg = document.querySelector('.animal-images img');
                                   if (mainImg) mainImg.src = getImageUrl(photo);
@@ -175,7 +176,7 @@ const AnimalModal = ({ animalId, onClose }) => {
                       )}
                     </>
                   ) : (
-                    <div className="text-center py-5 bg-light rounded">
+                    <div className="text-center py-3 bg-light rounded">
                       <i className="bi bi-image display-1 text-muted"></i>
                       <p className="text-muted mt-2">Нет изображения</p>
                     </div>
@@ -188,18 +189,18 @@ const AnimalModal = ({ animalId, onClose }) => {
                   <h6 className="border-bottom pb-2 mb-3">Информация о находке</h6>
                   
                   <div className="mb-3">
-                    <p><strong>Вид животного:</strong> {animalInfo.kind || "Не указан"}</p>
-                    <p><strong>Имя:</strong> {animalInfo.name || "Не указано"}</p>
-                    <p><strong>Район находки:</strong> {animalInfo.district || "Не указан"}</p>
-                    <p><strong>Дата находки:</strong> {animalInfo.date || "Не указана"}</p>
+                    <p className="mb-1"><strong>Вид животного:</strong> {animalInfo.kind || "Не указан"}</p>
+                    <p className="mb-1"><strong>Имя:</strong> {animalInfo.name || "Не указано"}</p>
+                    <p className="mb-1"><strong>Район находки:</strong> {animalInfo.district || "Не указан"}</p>
+                    <p className="mb-1"><strong>Дата находки:</strong> {animalInfo.date || "Не указана"}</p>
                     {animalInfo.mark && (
-                      <p><strong>Метка/клеймо:</strong> {animalInfo.mark}</p>
+                      <p className="mb-1"><strong>Метка/клеймо:</strong> {animalInfo.mark}</p>
                     )}
                   </div>
                   
                   <div className="mb-3">
-                    <p><strong>Описание:</strong></p>
-                    <div className="bg-light p-3 rounded">
+                    <p className="mb-1"><strong>Описание:</strong></p>
+                    <div className="bg-light p-2 rounded" style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '0.9rem' }}>
                       {animalInfo.description || "Нет описания"}
                     </div>
                   </div>
@@ -207,18 +208,18 @@ const AnimalModal = ({ animalId, onClose }) => {
                   <div className="mb-3">
                     <h6 className="border-bottom pb-2 mb-3">Контактная информация</h6>
                     {animalInfo.phone && (
-                      <p><strong>Телефон:</strong> {animalInfo.phone}</p>
+                      <p className="mb-1"><strong>Телефон:</strong> {animalInfo.phone}</p>
                     )}
                     {animalInfo.email && (
-                      <p><strong>Email:</strong> {animalInfo.email}</p>
+                      <p className="mb-1"><strong>Email:</strong> {animalInfo.email}</p>
                     )}
                     {!animalInfo.phone && !animalInfo.email && (
-                      <p className="text-muted">Контактная информация не указана</p>
+                      <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>Контактная информация не указана</p>
                     )}
                   </div>
                   
                   {animalInfo.foundBy && (
-                    <p className="text-muted small">
+                    <p className="text-muted small mt-3 pt-2 border-top">
                       <i className="bi bi-person me-1"></i>
                       Нашёл: {animalInfo.foundBy}
                     </p>
@@ -230,19 +231,13 @@ const AnimalModal = ({ animalId, onClose }) => {
         </div>
         
         {(!loading && animalInfo) && (
-          <div className="modal-footer">
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              onClick={onClose}
-            >
-              Закрыть
-            </button>
+          <div className="modal-footer d-flex justify-content-end">
             <button 
               type="button" 
               className="btn btn-primary"
               onClick={handleAdopt}
               disabled={isInterested}
+              style={{ minWidth: '180px' }}
             >
               {isInterested ? (
                 <>

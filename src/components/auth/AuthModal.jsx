@@ -32,6 +32,8 @@ const AuthModal = () => {
       setMessage({ type: 'success', text: 'Успешный вход!' });
       setTimeout(() => {
         document.getElementById('closeAuthModal')?.click();
+        // Обновляем страницу после закрытия модального окна
+        window.location.reload();
       }, 1000);
     } else {
       setMessage({ type: 'danger', text: result.error });
@@ -146,7 +148,7 @@ const AuthModal = () => {
                 </div>
               </form>
             ) : (
-              // Для режима регистрации - только форма без дополнительных кнопок
+             
               <RegistrationForm />
             )}
           </div>

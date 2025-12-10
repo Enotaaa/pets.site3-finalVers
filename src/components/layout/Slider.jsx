@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-
 const Slider = () => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +47,15 @@ const Slider = () => {
   return (
     <div className="fullscreen-slider-container">
       <div id="animalCarousel" className="carousel slide" data-bs-ride="carousel">
-        <div className="carousel-indicators">
+        {/* Овальные индикаторы сверху */}
+        <div className="carousel-indicators" style={{
+          position: 'absolute',
+          top: '20px',
+          left: '0',
+          right: '0',
+          margin: '0 auto',
+          zIndex: 10
+        }}>
           {pets.map((_, index) => (
             <button 
               key={index}
@@ -56,6 +63,17 @@ const Slider = () => {
               data-bs-target="#animalCarousel" 
               data-bs-slide-to={index}
               className={index === 0 ? 'active' : ''}
+              style={{
+                width: '30px',
+                height: '8px',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                border: 'none',
+                margin: '0 5px',
+                opacity: '0.7',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
             />
           ))}
         </div>
